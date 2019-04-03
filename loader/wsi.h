@@ -43,6 +43,9 @@ typedef struct {
         VkIcdSurfaceMacOS macos_surf;
 #endif  // VK_USE_PLATFORM_MACOS_MVK
         VkIcdSurfaceDisplay display_surf;
+#ifdef VK_USE_PLATFORM_HEADLESS_EXT
+        VkIcdSurfaceHeadless headless_surf;
+#endif  // VK_USE_PLATFORM_HEADLESS_EXT
     };
     uint32_t base_size;            // Size of VkIcdSurfaceBase
     uint32_t platform_size;        // Size of corresponding VkIcdSurfaceXXX
@@ -55,6 +58,12 @@ bool wsi_swapchain_instance_gpa(struct loader_instance *ptr_instance, const char
 
 void wsi_create_instance(struct loader_instance *ptr_instance, const VkInstanceCreateInfo *pCreateInfo);
 bool wsi_unsupported_instance_extension(const VkExtensionProperties *ext_prop);
+
+VKAPI_ATTR VkResult VKAPI_CALL
+terminator_CreateHeadlessSurfaceEXT(VkInstance instance,
+                                    const VkHeadlessSurfaceCreateInfoEXT *pCreateInfo,
+                                    const VkAllocationCallbacks *pAllocator,
+                                    VkSurfaceKHR *pSurface);
 
 VKAPI_ATTR VkResult VKAPI_CALL terminator_CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR *pCreateInfo,
                                                              const VkAllocationCallbacks *pAllocator, VkSwapchainKHR *pSwapchain);
