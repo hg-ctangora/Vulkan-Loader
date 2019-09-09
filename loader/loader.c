@@ -6683,7 +6683,7 @@ VkResult setupLoaderTermPhysDevs(struct loader_instance *inst) {
                        "ICD %d's \'vkEnumeratePhysicalDevices\' failed with"
                        " error 0x%08x",
                        icd_idx, res);
-            goto out;
+            continue;
         }
 
         icd_phys_dev_array[icd_idx].phys_devs =
@@ -6700,17 +6700,19 @@ VkResult setupLoaderTermPhysDevs(struct loader_instance *inst) {
         res = icd_term->dispatch.EnumeratePhysicalDevices(icd_term->instance, &(icd_phys_dev_array[icd_idx].count),
                                                           icd_phys_dev_array[icd_idx].phys_devs);
         if (VK_SUCCESS != res) {
-            goto out;
+            loader_log(inst, VK_DEBUG_REPORT_ERROR_BIT_EXT, 0,
+                       "setupLoaderTermPhysDevs:  Second call to "
+                       "ICD %d's \'vkEnumeratePhysicalDevices\' failed with"
+                       " error 0x%08x",
+                       icd_idx, res);
+            icd_phys_dev_array[icd_idx].count = 0;
+            continue;
         }
         inst->total_gpu_count += icd_phys_dev_array[icd_idx].count;
         icd_phys_dev_array[icd_idx].this_icd_term = icd_term;
     }
 
     if (0 == inst->total_gpu_count) {
-        loader_log(inst, VK_DEBUG_REPORT_ERROR_BIT_EXT, 0,
-                   "setupLoaderTermPhysDevs:  Failed to detect any valid"
-                   " GPUs in the current config");
-        res = VK_ERROR_INITIALIZATION_FAILED;
         goto out;
     }
 
