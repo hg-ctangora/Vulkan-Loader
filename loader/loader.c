@@ -6819,6 +6819,18 @@ VKAPI_ATTR VkResult VKAPI_CALL terminator_EnumeratePhysicalDevices(VkInstance in
         if (copy_count > *pPhysicalDeviceCount) {
             copy_count = *pPhysicalDeviceCount;
             res = VK_INCOMPLETE;
+
+            bool buggyAmdLayerIsPresent = false;
+            for (uint32_t layer_idx = 0; layer_idx < inst->app_activated_layer_list.count; ++layer_idx) {
+                if (!strcmp(inst->app_activated_layer_list.list[layer_idx].info.layerName, "VK_LAYER_AMD_switchable_graphics") && 
+                    inst->app_activated_layer_list.list[layer_idx].info.specVersion < 4198506) {
+                    buggyAmdLayerIsPresent = true;
+                    break;
+                }
+            }
+            if (buggyAmdLayerIsPresent) {
+                res = VK_SUCCESS;
+            }
         }
 
         for (uint32_t i = 0; i < copy_count; i++) {
