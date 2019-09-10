@@ -4401,6 +4401,30 @@ void loaderScanForLayers(struct loader_instance *inst, struct loader_layer_list 
                 goto out;
             }
         }
+
+        int32_t nvOptimusLayerIndex = -1;
+        int32_t amdSwitchableLayerIndex = -1;
+        for (uint32_t i = 0; i < instance_layers->count; i++) {
+            if (strcmp(instance_layers->list[i].info.layerName, "VK_LAYER_AMD_switchable_graphics") == 0) {
+                amdSwitchableLayerIndex = i;
+            }
+            if (strcmp(instance_layers->list[i].info.layerName, "VK_LAYER_NV_optimus") == 0) {
+                nvOptimusLayerIndex = i;
+            }
+        }
+
+        if (nvOptimusLayerIndex >= 0 && amdSwitchableLayerIndex >= 0 && nvOptimusLayerIndex < amdSwitchableLayerIndex) {
+            struct loader_layer_properties *temp =
+                loader_instance_heap_alloc(inst, sizeof(struct loader_layer_properties), VK_SYSTEM_ALLOCATION_SCOPE_COMMAND);
+
+            memcpy(temp, &instance_layers->list[nvOptimusLayerIndex], sizeof(struct loader_layer_properties));
+            memcpy(&instance_layers->list[nvOptimusLayerIndex], &instance_layers->list[amdSwitchableLayerIndex],
+                   sizeof(struct loader_layer_properties));
+            memcpy(&instance_layers->list[amdSwitchableLayerIndex], temp,
+                   sizeof(struct loader_layer_properties));
+
+            loader_instance_heap_free(inst, temp);
+        }
     }
 
     // Check to see if the override layer is present, and use it's override paths.
